@@ -16,22 +16,31 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: windows-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  Macos-cli-test:
+    name: MacOS CLI Test
+    runs-on: macos-latest
+    outputs:
+      status: ${{ steps.status-mark.outputs.status }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - spark: 3.1.1
+            java: 8
+            hadoop: 3.2
+            spark-major: "3.0"
     steps:
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
-    - uses: actions/setup-java@v1
-      with:
-        java-version: '11'
+      - name: Checkout
+        uses: actions/checkout@v2
+      - id: status-mark
+        if: ${{ always() }}
+        run: echo "::set-output name=status::$(${{job.status}})"
 
-    - uses: vemonet/setup-spark@v1
-      with:
-        spark-version: '3.2.1'
-        hadoop-version: '3.2'
-
-    - run: spark-submit --version
+  report:
+    name: Test result report
+    if: ${{ always() }}
+    needs: [ Macos-cli-test ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report
+        run: echo ${{needs.Macos-cli-test.outputs.status}}
