@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v2
       - id: status-mark
         if: ${{ always() }}
-        run: echo "::set-output name=status::$(${{job.status}})"
+        run: echo "::set-output name=status::${{job.status}}"
 
   report:
     name: Test result report
